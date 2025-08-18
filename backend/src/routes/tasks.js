@@ -1,22 +1,13 @@
 const express = require('express');
-const Redis = require('redis');
+const redisManager = require('../config/redis');
 const { v4: uuidv4 } = require('uuid');
 
 const router = express.Router();
 
-// Redis 客戶端
-const redisClient = Redis.createClient({
-  url: process.env.REDIS_URL || 'redis://localhost:6379'
-});
-
-// 連接到 Redis
-(async () => {
-  await redisClient.connect();
-})();
-
 // 獲取所有任務
 router.get('/', async (req, res) => {
   try {
+    const redisClient = redisManager.getClient();
     const tasks = await redisClient.hGetAll('tasks');
     const taskArray = Object.values(tasks).map(task => JSON.parse(task));
     
@@ -56,6 +47,7 @@ router.post('/', async (req, res) => {
       updatedAt: new Date().toISOString()
     };
     
+    const redisClient = redisManager.getClient();
     await redisClient.hSet('tasks', task.id, JSON.stringify(task));
     
     res.status(201).json(task);
@@ -71,6 +63,7 @@ router.put('/:id', async (req, res) => {
     const { id } = req.params;
     const updateData = req.body;
     
+    const redisClient = redisManager.getClient();
     const existingTask = await redisClient.hGet('tasks', id);
     if (!existingTask) {
       return res.status(404).json({ error: '任務不存在' });
@@ -97,6 +90,7 @@ router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     
+    const redisClient = redisManager.getClient();
     const existingTask = await redisClient.hGet('tasks', id);
     if (!existingTask) {
       return res.status(404).json({ error: '任務不存在' });
@@ -116,6 +110,7 @@ router.patch('/:id/toggle', async (req, res) => {
   try {
     const { id } = req.params;
     
+    const redisClient = redisManager.getClient();
     const existingTask = await redisClient.hGet('tasks', id);
     if (!existingTask) {
       return res.status(404).json({ error: '任務不存在' });
@@ -144,6 +139,7 @@ router.patch('/:id/move', async (req, res) => {
       return res.status(400).json({ error: '無效的象限值' });
     }
     
+    const redisClient = redisManager.getClient();
     const existingTask = await redisClient.hGet('tasks', id);
     if (!existingTask) {
       return res.status(404).json({ error: '任務不存在' });

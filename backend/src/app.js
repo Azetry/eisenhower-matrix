@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
-const Redis = require('redis');
+const redisManager = require('./config/redis');
 const { v4: uuidv4 } = require('uuid');
 
 const app = express();
@@ -20,22 +20,22 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
-// Redis 連接
-const redisClient = Redis.createClient({
-  url: process.env.REDIS_URL || 'redis://localhost:6379'
-});
-
-redisClient.on('error', (err) => {
-  console.error('Redis 連接錯誤:', err);
-});
-
-redisClient.on('connect', () => {
-  console.log('Redis 連接成功');
-});
-
 // 健康檢查端點
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
+app.get('/health', async (req, res) => {
+  try {
+    const redisStatus = redisManager.isClientConnected() ? 'connected' : 'disconnected';
+    res.status(200).json({ 
+      status: 'OK', 
+      timestamp: new Date().toISOString(),
+      redis: redisStatus
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      status: 'ERROR', 
+      timestamp: new Date().toISOString(),
+      error: error.message 
+    });
+  }
 });
 
 // API 路由
@@ -55,7 +55,10 @@ app.use('*', (req, res) => {
 // 啟動服務器
 async function startServer() {
   try {
-    await redisClient.connect();
+    // 先連接到 Redis
+    await redisManager.connect();
+    
+    // 啟動 Express 服務器
     app.listen(PORT, () => {
       console.log(`伺服器運行在端口 ${PORT}`);
     });
@@ -70,13 +73,13 @@ startServer();
 // 優雅關閉
 process.on('SIGTERM', async () => {
   console.log('收到 SIGTERM 信號，正在關閉服務器...');
-  await redisClient.quit();
+  await redisManager.disconnect();
   process.exit(0);
 });
 
 process.on('SIGINT', async () => {
   console.log('收到 SIGINT 信號，正在關閉服務器...');
-  await redisClient.quit();
+  await redisManager.disconnect();
   process.exit(0);
 });
 
