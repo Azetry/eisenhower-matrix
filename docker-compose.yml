@@ -1,0 +1,63 @@
+services:
+  # Redis 服務
+  redis:
+    image: redis:7-alpine
+    container_name: eisenhower-redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+
+  # 後端 API 服務
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: eisenhower-backend
+    ports:
+      - "${BACKEND_PORT:-5001}:5001"
+    environment:
+      - NODE_ENV=production
+      - REDIS_URL=redis://redis:6379
+      - PORT=5001
+    depends_on:
+      - redis
+    restart: unless-stopped
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+
+  # 前端服務 (使用 Vite 構建)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: eisenhower-frontend
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+    environment:
+      - VITE_API_URL=http://localhost:5001
+      - VITE_ENV=production
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  # Nginx 反向代理
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: eisenhower-nginx
+    ports:
+      - "${NGINX_PORT:-80}:80"
+    depends_on:
+      - frontend
+      - backend
+    restart: unless-stopped
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+
+volumes:
+  redis_data: 
