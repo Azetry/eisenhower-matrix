@@ -34,11 +34,13 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        - VITE_API_URL=/api
     container_name: eisenhower-frontend
     ports:
       - "${FRONTEND_PORT:-3000}:80"
     environment:
-      - VITE_API_URL=http://localhost:5001
+      - VITE_API_URL=/api  # 運行時環境變數
       - VITE_ENV=production
     depends_on:
       - backend

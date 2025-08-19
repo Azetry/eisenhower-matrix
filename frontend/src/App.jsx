@@ -18,13 +18,13 @@ function App() {
   const [editingTask, setEditingTask] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+  const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
   // 獲取所有任務
   const fetchTasks = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`${API_BASE_URL}/api/tasks`);
+      const response = await fetch(`${API_BASE_URL}/tasks`);
       if (response.ok) {
         const data = await response.json();
         setTasks(data);
@@ -41,7 +41,7 @@ function App() {
   // 創建新任務
   const createTask = async (taskData) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/tasks`, {
+      const response = await fetch(`${API_BASE_URL}/tasks`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -70,7 +70,7 @@ function App() {
   // 更新任務
   const updateTask = async (taskId, updateData) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/tasks/${taskId}`, {
+      const response = await fetch(`${API_BASE_URL}/tasks/${taskId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -106,7 +106,7 @@ function App() {
   // 刪除任務
   const deleteTask = async (taskId) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/tasks/${taskId}`, {
+      const response = await fetch(`${API_BASE_URL}/tasks/${taskId}`, {
         method: 'DELETE',
       });
 
@@ -132,7 +132,7 @@ function App() {
   // 切換任務完成狀態
   const toggleTaskCompletion = async (taskId) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/tasks/${taskId}/toggle`, {
+      const response = await fetch(`${API_BASE_URL}/tasks/${taskId}/toggle`, {
         method: 'PATCH',
       });
 
@@ -161,7 +161,7 @@ function App() {
   // 移動任務到不同象限
   const moveTask = async (taskId, newQuadrant) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/tasks/${taskId}/move`, {
+      const response = await fetch(`${API_BASE_URL}/tasks/${taskId}/move`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
