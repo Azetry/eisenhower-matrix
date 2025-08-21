@@ -74,7 +74,16 @@ const resources = {
       // Language
       'language': '語言',
       'chinese': '繁體中文',
-      'english': 'English'
+      'english': 'English',
+      'completed.tasks': '已完成任務',
+      'completed.tasks.subtitle': '查看您已完成的所有任務',
+      'completed.count': '已完成',
+      'no.completed.tasks': '尚無已完成任務',
+      'no.completed.tasks.description': '當您完成任務時，它們會出現在這裡',
+      'back.to.matrix': '返回矩陣',
+      'completed.at': '完成於',
+      'all.completed.tasks': '所有已完成任務',
+      'completed': '已完成'
     }
   },
   'en': {
@@ -148,7 +157,16 @@ const resources = {
       // Language
       'language': 'Language',
       'chinese': '繁體中文',
-      'english': 'English'
+      'english': 'English',
+      'completed.tasks': 'Completed Tasks',
+      'completed.tasks.subtitle': 'View all your completed tasks',
+      'completed.count': 'Completed',
+      'no.completed.tasks': 'No completed tasks yet',
+      'no.completed.tasks.description': 'When you complete tasks, they will appear here',
+      'back.to.matrix': 'Back to Matrix',
+      'completed.at': 'Completed at',
+      'all.completed.tasks': 'All Completed Tasks',
+      'completed': 'Completed'
     }
   }
 };

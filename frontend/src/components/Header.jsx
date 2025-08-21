@@ -1,10 +1,13 @@
 import React from 'react';
+import { useLocation } from 'react-router-dom';
 import { Plus, Target, Clock, CheckCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import LanguageSwitcher from './LanguageSwitcher';
 
-const Header = ({ onAddTask }) => {
+const Header = ({ onAddTask, onShowCompletedTasks, completedTasksCount }) => {
   const { t } = useTranslation();
+  const location = useLocation();
+  const isMatrixPage = location.pathname === '/';
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200">
@@ -19,42 +22,33 @@ const Header = ({ onAddTask }) => {
           </div>
           
           <div className="flex items-center space-x-4">
-            <div className="hidden md:flex items-center space-x-6 text-sm text-gray-600">
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                <span>{t('urgent.important')}</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                <span>{t('important.not.urgent')}</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                <span>{t('urgent.not.important')}</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
-                <span>{t('not.urgent.not.important')}</span>
-              </div>
-            </div>
+            {isMatrixPage && (
+              <>
+                <button
+                  onClick={onAddTask}
+                  className="btn-primary flex items-center space-x-2"
+                >
+                  <Plus className="h-5 w-5" />
+                  <span>{t('add.task')}</span>
+                </button>
+                
+                <button
+                  onClick={onShowCompletedTasks}
+                  className="btn-secondary flex items-center space-x-2"
+                >
+                  <CheckCircle className="h-5 w-5" />
+                  <span>{t('completed.tasks')}</span>
+                  {completedTasksCount > 0 && (
+                    <span className="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded-full">
+                      {completedTasksCount}
+                    </span>
+                  )}
+                </button>
+              </>
+            )}
             
-            <div className="flex items-center space-x-3">
-              <LanguageSwitcher />
-              <button
-                onClick={onAddTask}
-                className="btn-primary flex items-center space-x-2"
-              >
-                <Plus className="h-5 w-5" />
-                <span>{t('add.task')}</span>
-              </button>
-            </div>
+            <LanguageSwitcher />
           </div>
-        </div>
-        
-        <div className="mt-6 text-center">
-          <p className="text-gray-600 max-w-2xl mx-auto">
-            {t('app.description')}
-          </p>
         </div>
       </div>
     </header>

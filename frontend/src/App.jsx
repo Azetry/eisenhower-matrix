@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import EisenhowerMatrix from './components/EisenhowerMatrix.jsx';
+import CompletedTasks from './components/CompletedTasks.jsx';
 import TaskModal from './components/TaskModal.jsx';
 import Header from './components/Header.jsx';
 import { useTranslation } from 'react-i18next';
@@ -8,7 +10,9 @@ import './i18n';
 
 function App() {
   const { t } = useTranslation();
-  const [tasks, setTasks] = useState({
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [allTasks, setAllTasks] = useState({
     q1: [],
     q2: [],
     q3: [],
@@ -20,6 +24,20 @@ function App() {
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
+  // 過濾出未完成的任務（用於主頁矩陣）
+  const activeTasks = {
+    q1: allTasks.q1.filter(task => !task.completed),
+    q2: allTasks.q2.filter(task => !task.completed),
+    q3: allTasks.q3.filter(task => !task.completed),
+    q4: allTasks.q4.filter(task => !task.completed)
+  };
+
+  // 獲取所有已完成的任務
+  const completedTasks = Object.values(allTasks)
+    .flat()
+    .filter(task => task.completed)
+    .sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt));
+
   // 獲取所有任務
   const fetchTasks = async () => {
     try {
@@ -27,7 +45,7 @@ function App() {
       const response = await fetch(`${API_BASE_URL}/tasks`);
       if (response.ok) {
         const data = await response.json();
-        setTasks(data);
+        setAllTasks(data);
       } else {
         console.error('獲取任務失敗');
       }
@@ -51,7 +69,7 @@ function App() {
 
       if (response.ok) {
         const newTask = await response.json();
-        setTasks(prev => ({
+        setAllTasks(prev => ({
           ...prev,
           [newTask.quadrant]: [...prev[newTask.quadrant], newTask]
         }));
@@ -80,7 +98,7 @@ function App() {
 
       if (response.ok) {
         const updatedTask = await response.json();
-        setTasks(prev => {
+        setAllTasks(prev => {
           const newTasks = { ...prev };
           // 從原象限移除任務
           Object.keys(newTasks).forEach(quadrant => {
@@ -111,7 +129,7 @@ function App() {
       });
 
       if (response.ok) {
-        setTasks(prev => {
+        setAllTasks(prev => {
           const newTasks = { ...prev };
           Object.keys(newTasks).forEach(quadrant => {
             newTasks[quadrant] = newTasks[quadrant].filter(task => task.id !== taskId);
@@ -138,7 +156,7 @@ function App() {
 
       if (response.ok) {
         const updatedTask = await response.json();
-        setTasks(prev => {
+        setAllTasks(prev => {
           const newTasks = { ...prev };
           Object.keys(newTasks).forEach(quadrant => {
             newTasks[quadrant] = newTasks[quadrant].map(task => 
@@ -171,7 +189,7 @@ function App() {
 
       if (response.ok) {
         const movedTask = await response.json();
-        setTasks(prev => {
+        setAllTasks(prev => {
           const newTasks = { ...prev };
           // 從原象限移除任務
           Object.keys(newTasks).forEach(quadrant => {
@@ -213,6 +231,20 @@ function App() {
     }
   };
 
+  // 顯示已完成任務頁面
+  const handleShowCompletedTasks = () => {
+    navigate('/completed');
+  };
+
+  // 返回主頁矩陣
+  const handleBackToMatrix = () => {
+    navigate('/');
+  };
+
+  // 檢查當前頁面
+  const isMatrixPage = location.pathname === '/';
+  const isCompletedPage = location.pathname === '/completed';
+
   useEffect(() => {
     fetchTasks();
   }, []);
@@ -230,17 +262,39 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header onAddTask={() => setIsModalOpen(true)} />
+      <Header 
+        onAddTask={() => setIsModalOpen(true)}
+        onShowCompletedTasks={handleShowCompletedTasks}
+        completedTasksCount={completedTasks.length}
+        currentPage={isMatrixPage ? 'matrix' : 'completed'}
+      />
       
-      <main className="container mx-auto px-4 py-8">
-        <EisenhowerMatrix
-          tasks={tasks}
-          onEditTask={handleEditTask}
-          onDeleteTask={deleteTask}
-          onToggleCompletion={toggleTaskCompletion}
-          onMoveTask={moveTask}
+      <Routes>
+        <Route 
+          path="/" 
+          element={
+            <div className="container mx-auto px-4 py-8">
+              <EisenhowerMatrix
+                tasks={activeTasks}
+                onEditTask={handleEditTask}
+                onDeleteTask={deleteTask}
+                onToggleCompletion={toggleTaskCompletion}
+                onMoveTask={moveTask}
+              />
+            </div>
+          } 
         />
-      </main>
+        <Route 
+          path="/completed" 
+          element={
+            <CompletedTasks
+              completedTasks={completedTasks}
+              onNavigateBack={handleBackToMatrix}
+              onToggleCompletion={toggleTaskCompletion}
+            />
+          } 
+        />
+      </Routes>
 
       {isModalOpen && (
         <TaskModal
