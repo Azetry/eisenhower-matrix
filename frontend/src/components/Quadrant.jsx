@@ -29,7 +29,9 @@ const Quadrant = ({
           </div>
         </div>
         <div className="text-right">
-          <div className="text-2xl font-bold text-gray-700">{tasks.length}</div>
+          <div className="text-2xl font-bold text-gray-700">
+            {tasks.filter(task => !task.completed).length}
+          </div>
           <div className="text-xs text-gray-500">{t('task')}</div>
         </div>
       </div>
